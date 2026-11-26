@@ -1,1 +1,52 @@
+@keyframes vtrackSplashFade {
+    0%, 84% {
+        opacity: 1;
+        visibility: visible;
+    }
+    100% {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
 
+@keyframes vtrackSmokePuff {
+    0% {
+        opacity: 0.75;
+        transform: translate(0, 0) scale(0.5);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-38px, -16px) scale(1.9);
+    }
+}
+
+#vtrack-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #030712;
+    animation: vtrackSplashFade 4.3s ease forwards;
+}
+
+#vtrack-car {
+    position: relative;
+    animation: vtrackCarDrive 3.8s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+}
+
+.smoke-puff {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: vtrackSmokePuff 0.75s ease-out infinite;
+}
+
+.smoke-delay-1 {
+    animation-delay: 0.2s;
+}
+
+.smoke-delay-2 {
+    animation-delay: 0.45s;
+}
