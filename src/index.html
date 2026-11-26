@@ -1,12 +1,509 @@
-public class Main {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Track - Philippine Vehicle Rental & Fleet Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col">
 
-    public static void main(String[] args) {
-        System.out.println("=================================");
-        System.out.println("       V-TRACK SYSTEM");
-        System.out.println(" Vehicle Reservation and Management");
-        System.out.println("=================================");
+    <!-- SPLASH SCREEN -->
+    <div id="vtrack-splash">
+        <div style="position: relative; width: 100%; height: 140px; overflow: hidden; border-bottom: 1px solid #1f2937; display: flex; align-items: flex-end; justify-content: center;">
+            <div id="vtrack-car" style="padding-bottom: 8px;">
+                <svg width="280" height="85" viewBox="-55 0 300 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Exhaust Smoke -->
+                    <circle class="smoke-puff" cx="8" cy="52" r="5" fill="#9ca3af"/>
+                    <circle class="smoke-puff smoke-delay-1" cx="2" cy="49" r="7" fill="#6b7280"/>
+                    <circle class="smoke-puff smoke-delay-2" cx="-6" cy="46" r="8" fill="#4b5563"/>
 
-        System.out.println("Welcome to V-Track!");
-    }
-}
+                    <!-- Rear Tire Smoke (Gulong sa likod) -->
+                    <circle class="smoke-puff" cx="46" cy="64" r="6" fill="#d1d5db"/>
+                    <circle class="smoke-puff smoke-delay-1" cx="38" cy="61" r="8" fill="#9ca3af"/>
 
+                    <!-- Front Tire Smoke (Gulong sa harap) -->
+                    <circle class="smoke-puff smoke-delay-1" cx="166" cy="64" r="5" fill="#d1d5db"/>
+                    <circle class="smoke-puff smoke-delay-2" cx="158" cy="62" r="7" fill="#9ca3af"/>
+
+                    <!-- Exhaust Pipe (Tambutso) -->
+                    <rect x="8" y="49" width="10" height="4" rx="1.5" fill="#9ca3af"/>
+
+                    <!-- Car Body -->
+                    <path d="M15 55 L25 35 L65 32 L95 14 L165 14 L195 33 L228 40 L232 55 Z" fill="#ef4444"/>
+                    <path d="M72 32 L98 18 L130 18 L130 32 Z" fill="#111827"/>
+                    <path d="M136 18 L162 18 L185 32 L136 32 Z" fill="#111827"/>
+                    <rect x="30" y="43" width="185" height="4" rx="2" fill="#ffffff" opacity="0.85"/>
+
+                    <!-- Wheels -->
+                    <circle cx="62" cy="58" r="16" fill="#030712" stroke="#6b7280" stroke-width="3"/>
+                    <circle cx="62" cy="58" r="7" fill="#d1d5db"/>
+                    <circle cx="182" cy="58" r="16" fill="#030712" stroke="#6b7280" stroke-width="3"/>
+                    <circle cx="182" cy="58" r="7" fill="#d1d5db"/>
+                </svg>
+            </div>
+        </div>
+        <p style="margin-top: 16px; font-size: 20px; font-weight: 700; letter-spacing: 0.25em; color: #ef4444; font-family: sans-serif;">V-TRACK</p>
+    </div>
+
+    <!-- MANDATORY 1ST PAGE AUTH GATE -->
+    <div id="auth-gate-screen" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gray-900 border border-gray-800 rounded-3xl w-full max-w-md p-8 shadow-2xl space-y-5 my-auto">
+            <div class="text-center space-y-2">
+                <div class="inline-flex bg-blue-600 p-3 rounded-2xl text-white shadow-lg mb-1">
+                    <i class="fas fa-car-side text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-black tracking-tight text-white">V-Track Rentals</h1>
+                <p id="gate-subtitle" class="text-xs text-gray-400">Sign up or login to browse and book rental vehicles.</p>
+            </div>
+
+            <div id="customer-mode-toggle" class="grid grid-cols-2 gap-2 bg-gray-950 p-1.5 rounded-2xl border border-gray-800 text-xs font-semibold">
+                <button type="button" id="tab-btn-signup" onclick="toggleAuthMode('signup')" class="py-2 rounded-xl transition-all bg-blue-600 text-white">Create Account</button>
+                <button type="button" id="tab-btn-login" onclick="toggleAuthMode('login')" class="py-2 rounded-xl transition-all text-gray-400 hover:text-white">Sign In</button>
+            </div>
+
+            <form id="gate-auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3.5">
+                <input type="hidden" id="auth-role" value="customer">
+                <input type="hidden" id="auth-mode" value="signup">
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Full Name / Username</label>
+                    <input type="text" id="gate-fullname" required placeholder="Enter your name or username" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div id="rider-fields" class="space-y-3.5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Birth Date (Must be 18+)</label>
+                            <input type="date" id="gate-dob" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Contact Number</label>
+                            <input type="text" id="gate-phone" placeholder="0917 123 4567" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Password</label>
+                    <input type="password" id="gate-password" required placeholder="••••••••" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div id="gate-error" class="text-xs text-rose-400 font-semibold hidden"></div>
+
+                <button type="submit" id="gate-submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-sm tracking-wide transition-all shadow-lg text-white">
+                    Create Customer Account
+                </button>
+            </form>
+
+            <div class="pt-4 border-t border-gray-800 text-center">
+                <button type="button" id="admin-switch-btn" onclick="toggleAdminMode()" class="text-xs text-gray-500 hover:text-blue-400 underline font-medium transition-colors">
+                    Admin Portal Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SYSTEM INTERFACE -->
+    <div id="main-app-container" class="hidden flex-1 flex flex-col">
+
+        <header class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('catalog')">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white">
+                        <i class="fas fa-car-side text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">V-Track</span>
+                </div>
+
+                <div class="flex-1 max-w-md mx-4 hidden md:block">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="globalSearch" placeholder="Search by vehicle name, brand, or category..."
+                            oninput="handleSearch(this.value)"
+                            class="w-full pl-9 pr-4 py-2 bg-gray-900/60 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <div id="user-badge" class="flex items-center space-x-3 bg-gray-700/50 px-3 py-1.5 rounded-xl border border-gray-600">
+                        <i class="fas fa-user-circle text-blue-400 text-lg"></i>
+                        <div class="text-left">
+                            <p id="user-display-name" class="text-xs font-bold text-gray-100">Guest User</p>
+                            <p id="user-display-role" class="text-[10px] text-gray-400 uppercase font-semibold">Customer</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="bg-gray-800 hover:bg-rose-900/50 text-gray-300 hover:text-rose-400 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition-all flex items-center space-x-1">
+                        <i class="fas fa-sign-out-alt"></i><span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="bg-gray-800 border-b border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-8 overflow-x-auto text-sm">
+                <button id="nav-catalog" onclick="switchTab('catalog')" class="py-3 px-1 font-medium border-b-2 border-blue-500 text-blue-400 flex items-center space-x-2">
+                    <i class="fas fa-car"></i><span>Vehicle Fleet</span>
+                </button>
+                <button id="nav-reservations" onclick="switchTab('reservations')" class="py-3 px-1 font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2">
+                    <i class="fas fa-file-contract"></i><span>My Bookings & Authorization Papers</span>
+                </button>
+                <button id="nav-admin" onclick="switchTab('admin')" class="py-3 px-1 font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center space-x-2 hidden">
+                    <i class="fas fa-sliders-h"></i><span>Admin Dashboard</span>
+                </button>
+            </div>
+        </div>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+            <!-- TAB 1: VEHICLE CATALOG & BOOKING -->
+            <section id="tab-catalog" class="space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Total Vehicles</p>
+                            <h3 id="stat-total" class="text-2xl font-bold mt-1 text-white">0</h3>
+                        </div>
+                        <div class="bg-blue-500/10 text-blue-400 p-3 rounded-xl"><i class="fas fa-car text-xl"></i></div>
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Available Now</p>
+                            <h3 id="stat-available" class="text-2xl font-bold mt-1 text-emerald-400">0</h3>
+                        </div>
+                        <div class="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl"><i class="fas fa-check-circle text-xl"></i></div>
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Reserved</p>
+                            <h3 id="stat-reserved" class="text-2xl font-bold mt-1 text-amber-400">0</h3>
+                        </div>
+                        <div class="bg-amber-500/10 text-amber-400 p-3 rounded-xl"><i class="fas fa-clock text-xl"></i></div>
+                    </div>
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Under Maintenance</p>
+                            <h3 id="stat-maintenance" class="text-2xl font-bold mt-1 text-rose-400">0</h3>
+                        </div>
+                        <div class="bg-rose-500/10 text-rose-400 p-3 rounded-xl"><i class="fas fa-wrench text-xl"></i></div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pb-2 border-b border-gray-800">
+                    <div class="flex flex-wrap gap-2 items-center justify-between">
+                        <div class="flex flex-wrap gap-2" id="category-filters"></div>
+                        <select id="sort-select" onchange="renderFleet()" class="bg-gray-800 border border-gray-700 text-xs rounded-xl px-3 py-2 text-gray-300 outline-none">
+                            <option value="default">Sort by: Fleet Order (1–15)</option>
+                            <option value="name">Sort by: Vehicle Name</option>
+                            <option value="price-asc">Price: Low to High</option>
+                            <option value="price-desc">Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-2 overflow-x-auto py-1">
+                        <span class="text-xs text-gray-400 font-medium mr-1 flex items-center space-x-1">
+                            <i class="fas fa-users text-blue-400"></i><span>Capacity:</span>
+                        </span>
+                        <div class="flex space-x-1.5" id="seater-filters"></div>
+                    </div>
+                </div>
+                <div id="fleet-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <!-- VEHICLE PICKUP LOCATION MAP -->
+                 
+<div class="bg-gray-800 border border-gray-700 rounded-2xl p-5 space-y-4 shadow-lg">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <span class="text-[11px] uppercase tracking-wider text-blue-400 font-bold">Pickup & Return Point</span>
+            <h3 id="pickup-hub-title" class="text-lg font-bold text-white">V-Track Pickup Hub — De Joya Compound, Alangilan</h3>
+            <p id="pickup-hub-address" class="text-xs text-gray-400">De Joya Compound, Alangilan, Batangas City, Philippines • Present valid ID & age 18+ verification upon release</p>
+        </div>
+        <a id="pickup-maps-link" href="https://www.google.com/maps/search/?api=1&query=De+Joya+Compound,+Alangilan,+Batangas+City,+Philippines" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shrink-0">
+            <i class="fas fa-location-dot"></i><span>Open in Google Maps</span>
+        </a>
+    </div>
+
+    <div class="rounded-xl overflow-hidden border border-gray-700 bg-gray-900 h-64">
+        <iframe
+            id="vtrack-pickup-map"
+            title="V-Track Vehicle Pickup Location Map — De Joya Compound, Alangilan, Batangas"
+            src="https://maps.google.com/maps?q=De+Joya+Compound,+Alangilan,+Batangas+City,+Philippines&t=&z=16&ie=UTF8&iwloc=&output=embed"
+            class="w-full h-full border-0"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+</div>
+
+            <!-- TAB 2: RESERVATION RECORDS & CONTRACT PRINTING -->
+            <section id="tab-reservations" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">Booking History & Legal Rental Papers</h2>
+                        <p class="text-xs text-gray-400">View active reservations and print official authorization papers</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select id="reservation-filter-status" onchange="renderReservations()" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300">
+                            <option value="ALL">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-300">
+                            <thead class="bg-gray-900/60 text-gray-400 uppercase text-[10px] tracking-wider border-b border-gray-700">
+                                <tr>
+                                    <th class="px-6 py-4">Contract ID</th>
+                                    <th class="px-6 py-4">Rider</th>
+                                    <th class="px-6 py-4">Vehicle</th>
+                                    <th class="px-6 py-4">Dates & Duration</th>
+                                    <th class="px-6 py-4">Total Amount</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-right">Actions / Paper</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservations-table-body" class="divide-y divide-gray-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ADMIN MANAGEMENT -->
+            <section id="tab-admin" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold">Admin Fleet Control</h2>
+                        <p class="text-xs text-gray-400">Manage vehicle inventory, maintenance statuses, and records</p>
+                    </div>
+                    <button onclick="openVehicleModal()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-lg transition-all">
+                        <i class="fas fa-plus"></i><span>Add New Vehicle</span>
+                    </button>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-300">
+                            <thead class="bg-gray-900/60 text-gray-400 uppercase text-[10px] tracking-wider border-b border-gray-700">
+                                <tr>
+                                    <th class="px-6 py-4">Vehicle Detail</th>
+                                    <th class="px-6 py-4">Category / Capacity</th>
+                                    <th class="px-6 py-4">Daily Rate</th>
+                                    <th class="px-6 py-4">Maintenance Status</th>
+                                    <th class="px-6 py-4">Active Bookings</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-fleet-table-body" class="divide-y divide-gray-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL 1: BOOKING MODAL -->
+    <div id="modal-booking" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-5 relative">
+            <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            <div>
+                <h3 class="text-xl font-bold">Book Rental Vehicle</h3>
+                <p id="booking-vehicle-title" class="text-xs text-blue-400 font-medium mt-0.5">Vehicle Details</p>
+            </div>
+            <form id="booking-form" onsubmit="confirmBooking(event)" class="space-y-4">
+                <input type="hidden" id="booking-vehicle-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Start Date</label>
+                        <input type="date" id="booking-start-date" required onchange="calculateRentalCost()" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">End Date</label>
+                        <input type="date" id="booking-end-date" required onchange="calculateRentalCost()" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="bg-gray-900/80 p-3.5 rounded-xl border border-gray-700/60 text-xs text-gray-300 flex justify-between">
+                    <span>Verified Rider: <strong id="booking-rider-name-display" class="text-white">Juan</strong></span>
+                    <span class="text-gray-400">Age 18+</span>
+                </div>
+
+                <div class="bg-gray-900/90 rounded-xl p-4 border border-gray-700/60 space-y-2">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Daily Rate:</span>
+                        <span id="booking-daily-rate">₱0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Rental Duration:</span>
+                        <span id="booking-duration-days" class="font-semibold text-gray-200">0 Days</span>
+                    </div>
+                    <div class="border-t border-gray-800 pt-2 flex justify-between text-sm font-bold text-white">
+                        <span>Final Total Cost:</span>
+                        <span id="booking-total-cost" class="text-blue-400">₱0.00</span>
+                    </div>
+                </div>
+
+                <div id="booking-error-msg" class="text-xs text-rose-400 font-medium hidden"></div>
+
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold text-sm transition-all shadow-lg flex items-center justify-center space-x-2">
+                    <i class="fas fa-file-contract"></i><span>Confirm Booking</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ADMIN VEHICLE FORM -->
+    <div id="modal-vehicle" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeVehicleModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            <h3 id="vehicle-modal-title" class="text-xl font-bold">Add New Vehicle</h3>
+            <form id="vehicle-form" onsubmit="saveVehicle(event)" class="space-y-4">
+                <input type="hidden" id="vehicle-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Brand</label>
+                        <input type="text" id="vehicle-brand" required placeholder="e.g. Toyota" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Model Name</label>
+                        <input type="text" id="vehicle-name" required placeholder="e.g. Vios XLE" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Category</label>
+                        <select id="vehicle-category" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Van">Van</option>
+                            <option value="L300/Truck">L300 / Utility Truck</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="Jeepney">Jeepney</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Seater Capacity</label>
+                        <select id="vehicle-seater" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                            <option value="1">1 Seater</option>
+                            <option value="3">3 Seater</option>
+                            <option value="4">4 Seater</option>
+                            <option value="5">5 Seater</option>
+                            <option value="6">6+ Seater</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Daily Rate (₱)</label>
+                        <input type="number" id="vehicle-price" required min="1" step="1" placeholder="1500" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Image URL</label>
+                    <input type="url" id="vehicle-image" required placeholder="https://images.unsplash.com/photo-..." class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex items-center space-x-2 pt-2">
+                    <input type="checkbox" id="vehicle-maintenance" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-gray-900 border-gray-700">
+                    <label for="vehicle-maintenance" class="text-xs font-medium text-gray-300">Set under Maintenance (Block Bookings)</label>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold text-sm transition-all shadow-lg">Save Record</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: OFFICIAL LEGAL PRINTABLE AUTHORIZATION PAPER -->
+    <div id="modal-receipt" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white text-gray-900 border border-gray-300 rounded-2xl w-full max-w-2xl p-8 shadow-2xl space-y-6 relative my-8">
+            <button onclick="closeReceiptModal()" class="absolute top-4 right-4 text-gray-500 hover:text-black print:hidden"><i class="fas fa-times text-xl"></i></button>
+
+            <div id="printable-contract" class="space-y-6 text-sm">
+                <div class="text-center border-b-2 border-gray-900 pb-4">
+                    <h2 class="text-2xl font-black uppercase tracking-widest text-gray-900">V-TRACK RENTALS PH</h2>
+                    <p class="text-xs font-bold text-gray-700 uppercase">Official Vehicle Rental & Authorization Paper</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5">Katunayan ng Pag-Upa at Legal na Pahintulot sa Paggamit ng Sasakyan</p>
+                </div>
+
+                <div class="flex justify-between text-xs font-mono border-b border-gray-200 pb-2">
+                    <div><strong>Contract Ref:</strong> <span id="contract-id">#VT-0000</span></div>
+                    <div><strong>Date Issued:</strong> <span id="contract-issued-date">-</span></div>
+                </div>
+
+                <div class="bg-gray-100 p-4 rounded-xl border border-gray-300 text-xs leading-relaxed">
+                    <p class="font-bold text-gray-900 mb-1">CERTIFICATE OF RENTAL AUTHORIZATION:</p>
+                    This legal paper certifies that the vehicle described below is officially rented and operated by
+                    <strong id="contract-rider-name-header" class="underline">[Rider Name]</strong> (Age 18+ Verified Driver). The driver is authorized to operate this vehicle during the specified rental duration.
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 text-xs">
+                    <div class="space-y-2 border border-gray-200 p-3.5 rounded-xl">
+                        <h4 class="font-bold border-b pb-1 text-blue-900 uppercase">Rider Details (18+ Verified)</h4>
+                        <p><strong>Full Name:</strong> <span id="contract-rider-name">-</span></p>
+                        <p><strong>Contact No:</strong> <span id="contract-rider-phone">-</span></p>
+                    </div>
+                    <div class="space-y-2 border border-gray-200 p-3.5 rounded-xl">
+                        <h4 class="font-bold border-b pb-1 text-blue-900 uppercase">Rental Summary</h4>
+                        <p><strong>Vehicle:</strong> <span id="contract-vehicle">-</span></p>
+                        <p><strong>Period:</strong> <span id="contract-dates">-</span></p>
+                        <p><strong>Total Paid:</strong> <span id="contract-total">-</span></p>
+                    </div>
+                </div>
+
+                <!-- SIGNATURE SPACE -->
+                <div class="pt-6 border-t border-gray-300">
+                    <p class="text-[11px] text-gray-600 mb-8">
+                        By signing below, both parties acknowledge and agree to the rental details and authorization terms stated above.
+                    </p>
+                    <div class="grid grid-cols-2 gap-8 pt-4 text-center text-xs">
+                        <div>
+                            <div class="h-12 border-b border-gray-800 mb-1.5"></div>
+                            <p id="contract-rider-signature-name" class="font-bold text-gray-900 uppercase">-</p>
+                            <p class="text-[10px] text-gray-500">Renter / Driver Signature Over Printed Name</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Date Signed: ___________________</p>
+                        </div>
+                        <div>
+                            <div class="h-12 border-b border-gray-800 mb-1.5"></div>
+                            <p class="font-bold text-gray-900 uppercase">V-Track Authorized Representative</p>
+                            <p class="text-[10px] text-gray-500">Fleet Admin / Authorized Signatory</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Date Signed: ___________________</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 print:hidden">
+                <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">
+                    <i class="fas fa-print mr-1"></i>Print Paper
+                </button>
+                <button onclick="closeReceiptModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl text-xs font-bold">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEPARATE LOGIN SCRIPT -->
+    <script src="login.js"></script>
