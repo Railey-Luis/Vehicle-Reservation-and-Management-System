@@ -61,10 +61,10 @@ The project uses the following technologies:
 
 | Team Member | Assigned Role |
 |---|---|
-| Pabunan, Railey Luis T.] | [Project Manager/Fullstack Developer] |
-| [Astillo, Jancelle] | [Frontend Developer] |
-| [Pullan, Anton Luise] | [Frontend Developer] |
-| [Alo, Dondon] | [Backend Developer] |
+| Pabunan, Railey Luis T. | Project Manager/Fullstack Developer |
+| Astillo, Jancelle | Frontend Developer |
+| Pullan, Anton Luise | Frontend Developer |
+| Alo, Dondon | Backend Developer |
 
 
 # 9. OOP Concepts Demonstrated
@@ -114,16 +114,16 @@ Possible improvements for future versions include:
 ## 14. Project Contributors
 
 **Developed by:**  
-[KANEN BUSENG]
+KANEN BUSENG
 
 **Team Members:**
-- [Alo, Dondon]
-- [Astillo, Jancelle]
-- [Pabunan, Railey Luis]
-- [Pullan, Anton Luise]
+- Alo, Dondon
+- Astillo, Jancelle
+- Pabunan, Railey Luis
+- Pullan, Anton Luise
 
 **Project:** V-Track – Vehicle Reservation and Management System
 
-**Course/Subject:** [Object Oriented Programming - 101]
+**Course/Subject:** Object Oriented Programming - 101
 
-**Academic Year:** [2026-2027]
+**Academic Year:** 2026-2027
